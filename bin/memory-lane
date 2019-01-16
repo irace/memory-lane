@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+require 'slack-ruby-client'
+require 'down/http'
+require 'fileutils'
+
+FileUtils.mkdir_p 'downloads'
+
+config = YAML.load_file('config.yml')['slack']
+
+api_token = config['api_token']
+
+Slack.configure do |config|
+  config.token = api_token
+end
+
+client = Slack::Web::Client.new
+
+http = Down::Http.new(headers: { 'Authorization': "Bearer #{api_token}" })
+
+def download_path(url:, index:)
+  File.join('downloads', '/', index.to_s + '_' + File.basename(URI.parse(url).path))
+end
+
+config['channels']
+  .flat_map { |channel|
+    client.files_list(types: 'images', channel: channel)['files']
+      .map { |file| file['url_private'] }
+  }
+  .compact
+  .each_with_index { |url, index|     
+    path = download_path(url: url, index: index)
+
+    puts "Saving #{url} to #{path}..."
+
+    http.download(url, destination: path)
+  }
