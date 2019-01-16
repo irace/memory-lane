@@ -13,6 +13,8 @@ First, run `bundle install` to install dependencies. Then:
 ./bin/memory-lane
 ```
 
+This will use Slack’s [files.list](https://api.slack.com/methods/files.list) API to download all files of type `images`.
+
 ## Configuration
 
 First, you must create a `config.yml` file that includes the following values:
